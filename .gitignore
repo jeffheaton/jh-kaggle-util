@@ -1,3 +1,4 @@
+.DS_STORE
 .code-workspace
 # Byte-compiled / optimized / DLL files
 __pycache__/
