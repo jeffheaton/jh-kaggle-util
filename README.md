@@ -6,7 +6,9 @@ This is the set of utilities that I use for Kaggle.  This set has been through 3
 Now that I am posting it to GitHub I am cleaning up the code a bit.  This is an ongoing process.  To stay up
 to date [please follow me](https://github.com/jeffheaton)!
 
-Instructions are coming soon!
+# Instructions for Usage
+![Jeff Heaton's Kaggle Utilities](https://raw.githubusercontent.com/jeffheaton/jh-kaggle-util/master/img/jh-kaggle.png))
+More instructions are coming soon!
 
-Current limitations of these utilities:
+# Current Limitations of these Utilities
 * Regression Only Support (no classification)
