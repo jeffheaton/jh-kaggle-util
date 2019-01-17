@@ -4,7 +4,7 @@
 # 
 # This file should be modified to define each new project.
 import platform
-import const *
+from const import *
 
 TRAIN_ID = "ID"
 TEST_ID = "ID"

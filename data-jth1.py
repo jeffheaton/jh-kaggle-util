@@ -1,7 +1,10 @@
-# https://www.analyticsvidhya.com/blog/2016/03/complete-guide-parameter-tuning-xgboost-with-codes-python/?cm_mc_uid=69639150523714851136968&cm_mc_sid_50200000=1489935376
-# https://www.ibm.com/developerworks/community/blogs/jfp/entry/Installing_XGBoost_on_Mac_OSX?lang=en
-# https://github.com/dmlc/xgboost/issues/1049
-# Read a CSV file
+# Jeff Heaton's Kaggle Utilities
+# Copyright 2019 by Jeff Heaton, Open Source, Released under the Apache License
+# For more information: https://github.com/jeffheaton/jh-kaggle-util
+# 
+# The data- files are used to generate features from the raw data files provided by Kaggle.
+# These features individual feature files are then joined together (by joiner.py) to become
+# the feature vector that training actually occurs on. 
 import numpy as np
 from util import *
 
