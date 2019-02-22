@@ -10,12 +10,18 @@ from keras.callbacks import ModelCheckpoint
 
 
 class TrainTensorFlow(TrainModel):
-    def __init__(self, data_source, params, run_single_fold):
+    def __init__(self, data_source, run_single_fold):
         super().__init__(data_source, run_single_fold)
         self.name="tensorflow"
-        self.params = params
+        self.params = []
         self.early_stop = 50
 
+    def define_neural_network(self, x):
+        # Modify this to define the type of neural network, hidden layers, etc.
+        model = Sequential()
+        model.add(Dense(20, input_dim=x.shape[1], activation='relu'))
+        model.add(Dense(10, activation='relu'))
+        return model
 
     def train_model(self, x_train, y_train, x_val, y_val):
 
@@ -31,16 +37,12 @@ class TrainTensorFlow(TrainModel):
                 y_val = y_val.values.astype(np.int32)
 
         if FIT_TYPE == FIT_TYPE_REGRESSION:
-            model = Sequential()
-            model.add(Dense(20, input_dim=x_train.shape[1], activation='relu'))
-            model.add(Dense(10, activation='relu'))
+            model = self.define_neural_network(x_train)
             model.add(Dense(1))
             model.compile(loss='mean_squared_error', optimizer='adam')
         else:
-            model = Sequential()
-            model.add(Dense(20, input_dim=x.shape[1], activation='relu'))
-            model.add(Dense(10))
-            model.add(Dense(y.shape[1],activation='softmax'))
+            model = self.define_neural_network(x_train)
+            model.add(Dense(y_train.shape[1],activation='softmax'))
             model.compile(loss='categorical_crossentropy', optimizer='adam')
             monitor = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=5, verbose=0, mode='auto')
             checkpointer = ModelCheckpoint(filepath="best_weights.hdf5", verbose=0, save_best_only=True) # save best model
@@ -78,14 +80,9 @@ class TrainTensorFlow(TrainModel):
 # [984]	train-logloss:0.096444	eval-logloss:0.293915
 
 tf.logging.set_verbosity(tf.logging.INFO)
-params = {
-    'opt':tf.train.AdamOptimizer(learning_rate=1e-3),
-    'hidden':[500,100,50],
-    'seed':42,
-    'dropout': 0.2 # probability of dropping out a given neuron
-}
+
 start_time = time.time()
-train = TrainTensorFlow("1",params,False)
+train = TrainTensorFlow("1",False)
 train.zscore = False
 train.run()
 
