@@ -90,8 +90,12 @@ params = {'max_depth': 2, 'subsample': 0.9, 'reg_alpha': 100, 'gamma': 0.0, 'min
 params = {**params, **COMMON}
 print(params)
 
+start_time = time.time()
 train = TrainXGBoost("1",params=params,run_single_fold=False)
 train.early_stop = 50
 train.rounds = 10000
 #train.run_cv()
 train.run()
+
+elapsed_time = time.time() - start_time
+print("Elapsed time: {}".format(hms_string(elapsed_time)))

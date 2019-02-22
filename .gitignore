@@ -1,3 +1,5 @@
+.vscode/
+best_weights.hdf5
 .DS_STORE
 .code-workspace
 # Byte-compiled / optimized / DLL files

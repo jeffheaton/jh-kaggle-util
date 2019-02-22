@@ -28,8 +28,8 @@ class TrainSKLearn(TrainModel):
     def train_model(self, x_train, y_train, x_val, y_val):
         print("Training SKLearn model: {}".format(self.alg))
 
-        x_train = x_train.as_matrix().astype(np.float32)
-        y_train = y_train.as_matrix().astype(np.int32)
+        x_train = x_train.values.astype(np.float32)
+        y_train = y_train.values.astype(np.int32)
 
         #x_val = x_val.as_matrix().astype(np.float32)
         #y_val = y_val.as_matrix().astype(np.int32)
@@ -42,7 +42,7 @@ class TrainSKLearn(TrainModel):
         return self.alg
 
     def predict_model(self, clr, x):
-        x = x.as_matrix().astype(np.float32)
+        x = x.values.astype(np.float32)
 
         if FIT_TYPE == FIT_TYPE_REGRESSION:
             return clr.predict(x)
@@ -69,7 +69,10 @@ alg_list = [
     #['knn', sklearn.neighbors.KNeighborsRegressor(n_neighbors=5)]
 ]
 
+start_time = time.time()
 for name,alg in alg_list:
     train = TrainSKLearn("1",name,alg,False)
     train.run()
     train = None
+elapsed_time = time.time() - start_time
+print("Elapsed time: {}".format(hms_string(elapsed_time)))

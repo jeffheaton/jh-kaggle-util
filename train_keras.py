@@ -1,9 +1,13 @@
 from util import *
 import tensorflow as tf
-import tensorflow.contrib.learn as learn
 import scipy.stats
 import numpy as np
 import time
+from keras.models import Sequential
+from keras.layers.core import Dense, Activation
+from keras.callbacks import EarlyStopping
+from keras.callbacks import ModelCheckpoint
+
 
 class TrainTensorFlow(TrainModel):
     def __init__(self, data_source, params, run_single_fold):
@@ -15,71 +19,56 @@ class TrainTensorFlow(TrainModel):
 
     def train_model(self, x_train, y_train, x_val, y_val):
 
-
-        print(type(x_train))
         if type(x_train) is not np.ndarray:
-            x_train = x_train.as_matrix().astype(np.float32)
+            x_train = x_train.values.astype(np.float32)
         if type(y_train) is not np.ndarray:
-            y_train = y_train.as_matrix().astype(np.int32)
+            y_train = y_train.values.astype(np.int32)
 
         if x_val is not None:
             if type(x_val) is not np.ndarray:
-                x_val = x_val.as_matrix().astype(np.float32)
+                x_val = x_val.values.astype(np.float32)
             if type(y_val) is not np.ndarray:
-                y_val = y_val.as_matrix().astype(np.int32)
-
-
-        # Get/clear a directory to store the neural network to
-        model_dir = get_model_dir('dnn_kaggle',True)
-
-        # Create a deep neural network
-        feature_columns = [tf.contrib.layers.real_valued_column("", dimension=x_train.shape[1])]
+                y_val = y_val.values.astype(np.int32)
 
         if FIT_TYPE == FIT_TYPE_REGRESSION:
-            classifier = learn.DNNRegressor(
-                optimizer=self.params['opt'],
-                dropout=self.params['dropout'],
-                model_dir=model_dir,
-                config=tf.contrib.learn.RunConfig(save_checkpoints_secs=60),
-                hidden_units=self.params['hidden'], feature_columns=feature_columns)
+            model = Sequential()
+            model.add(Dense(20, input_dim=x_train.shape[1], activation='relu'))
+            model.add(Dense(10, activation='relu'))
+            model.add(Dense(1))
+            model.compile(loss='mean_squared_error', optimizer='adam')
         else:
-            classifier = learn.DNNClassifier(
-                optimizer=self.params['opt'],
-                dropout=self.params['dropout'],
-                model_dir= model_dir,
-                config=tf.contrib.learn.RunConfig(save_checkpoints_secs=60),
-                hidden_units=self.params['hidden'], n_classes=self.params['n_classes'], feature_columns=feature_columns)
+            model = Sequential()
+            model.add(Dense(20, input_dim=x.shape[1], activation='relu'))
+            model.add(Dense(10))
+            model.add(Dense(y.shape[1],activation='softmax'))
+            model.compile(loss='categorical_crossentropy', optimizer='adam')
+            monitor = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=5, verbose=0, mode='auto')
+            checkpointer = ModelCheckpoint(filepath="best_weights.hdf5", verbose=0, save_best_only=True) # save best model
 
         if x_val is not None:
             # Early stopping
-            validation_monitor = tf.contrib.learn.monitors.ValidationMonitor(
-                x_val,
-                y_val,
-                every_n_steps=100,
-                #metrics=validation_metrics,
-                early_stopping_metric="loss",
-                early_stopping_metric_minimize=True,
-                early_stopping_rounds=500)
+            monitor = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=5, verbose=1, mode='auto')
+            checkpointer = ModelCheckpoint(filepath="best_weights.hdf5", verbose=0, save_best_only=True) # sav
 
             # Fit/train neural network
-            classifier.fit(x_train, y_train,monitors=[validation_monitor],steps=100000, batch_size=1000)
-            self.steps = validation_monitor._best_value_step
+            model.fit(x_train,y_train,validation_data=(x_val,y_val),callbacks=[monitor,checkpointer],verbose=0,epochs=1000)
+            model.load_weights('best_weights.hdf5') # load weights from best model
         else:
-            classifier.fit(x_train, y_train, steps=100000, batch_size=self.rounds)
+            model.fit(x_train,y_train,verbose=0,epochs=1000)
 
         #self.classifier = clr.best_iteration
-        return classifier
+        return model
 
-    def predict_model(self, clr, x):
+    def predict_model(self, model, x):
         if type(x) is not np.ndarray:
-            x = x.as_matrix().astype(np.float32)
+            x = x.values.astype(np.float32)
 
         if FIT_TYPE == FIT_TYPE_REGRESSION:
-            pred = np.array(list(clr.predict(x, as_iterable=True)))
+            pred = model.predict(x)
         else:
-            pred = list(clr.predict_proba(x, as_iterable=True))
+            pred = model.predict(x)
             pred = np.array([v[1] for v in pred])
-        return pred
+        return pred.flatten()
 
 # "all the time" to "always"
 # reall short ones that are dead wrong
@@ -95,7 +84,8 @@ params = {
     'seed':42,
     'dropout': 0.2 # probability of dropping out a given neuron
 }
-train = TrainTensorFlow("2",params,False)
+start_time = time.time()
+train = TrainTensorFlow("1",params,False)
 train.zscore = False
 train.run()
 
