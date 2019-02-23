@@ -5,47 +5,39 @@
 # Tune for XGBoost, based on: https://towardsdatascience.com/fine-tuning-xgboost-in-python-like-a-boss-b4543ed8b1e
 #
 
-import xgboost as xgb
-import sklearn
-import sklearn.metrics as metrics
 from util import *
 from xgboost.sklearn import XGBClassifier
 from sklearn.model_selection import GridSearchCV
 import multiprocessing
 import itertools
-from train_xgboost import *
 import demjson
 import time
+
+import pandas as pd
+import numpy as np
+import xgboost as xgb
+import time
+import os
+import zipfile
+import operator
+from sklearn.metrics import log_loss
+import scipy
+from train_xgboost import TrainXGBoost
 
 # http://stackoverflow.com/questions/2853212/all-possible-permutations-of-a-set-of-lists-in-python
 
 FOLDS = 5
 EARLY_STOP = 50
-MAX_CV = 2000
-
-PARAMS1 = {
-    'objective': 'reg:linear',
-    'eval_metric': 'rmse',
-    'learning_rate' : 0.005,
-    'base_score': 100.669318128,
-    'subsample' : 0.8,
-    'colsample_bytree' : 0.8,
-    'max_depth' : 5,
-    'min_child_weight' : 1,
-    'scale_pos_weight' : 1,
-    'gamma' : 0,
-    'silent' : 1,
-    'seed' : 42
-}
+MAX_CV = 5
 
 PARAMS1 = {
 'objective': 'reg:linear',
     'eval_metric': 'rmse',
 'silent' : 1,
-    'learning_rate':0.0045,'base_score': 100.669318128,'seed':4242
+    'learning_rate':0.0045,'seed':4242
 }
 
-train = TrainXGBoost(None, num_folds=5, folds2run=0)
+train = TrainXGBoost("1",params=PARAMS1,run_single_fold=True)
 
 def modelfit(params,x,y):
     #Fit the algorithm on the data

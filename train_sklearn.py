@@ -63,10 +63,10 @@ n_folds = 3
 
 # https://www.analyticsvidhya.com/blog/2015/06/tuning-random-forest-model/
 alg_list = [
-    #['rforest',RandomForestRegressor(n_estimators=1000, n_jobs=-1, max_depth=3, criterion='mae')],
-    #['extree',ExtraTreesClassifier(n_estimators = 1000,max_depth=2)],
+    ['rforest',RandomForestRegressor(n_estimators=1000, n_jobs=-1, max_depth=3, criterion='mae')],
+    ['extree',ExtraTreesClassifier(n_estimators = 1000,max_depth=2)],
     ['adaboost',AdaBoostRegressor(base_estimator=None, n_estimators=600, learning_rate=1.0, random_state=20160703)],
-    #['knn', sklearn.neighbors.KNeighborsRegressor(n_neighbors=5)]
+    ['knn', sklearn.neighbors.KNeighborsRegressor(n_neighbors=5)]
 ]
 
 start_time = time.time()
