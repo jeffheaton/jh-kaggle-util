@@ -28,7 +28,7 @@ from train_xgboost import TrainXGBoost
 
 FOLDS = 5
 EARLY_STOP = 50
-MAX_CV = 5
+MAX_ROUNDS = 10000
 
 PARAMS1 = {
 'objective': 'reg:linear',
@@ -106,7 +106,7 @@ def grid_search(params,grid,num):
         params2 = dict(params)
         update(params2,job)
         train.params = params2
-        train.rounds = MAX_CV
+        train.rounds = MAX_ROUNDS
         train.early_stop = EARLY_STOP
         result = train.run_cv()
         print("Result: {}".format(result))
