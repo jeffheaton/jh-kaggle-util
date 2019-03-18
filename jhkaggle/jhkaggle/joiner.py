@@ -6,25 +6,23 @@
 import pandas as pd
 import os
 import os.path
-from config import *
-from util import *
-from sklearn.model_selection import KFold
+import jhkaggle
+import jhkaggle.util
+from sklearn.model_selection import KFold,StratifiedKFold
 
-PROFILE_1 = {
-    'name' : '1',
-    'SOURCES' : ['jth-1','ker1'],
-    'BALANCE' : False,
-    'IGNORE' : [],
-    'ORIG_FIELDS' : []
-}
+def perform_join(profile_name):
+    fit_type = jhkaggle.jhkaggle_config['FIT_TYPE']
+    target_name = jhkaggle.jhkaggle_config['TARGET_NAME']
 
-FOLDS = 10
-SEED = 42
-
-def perform_join(profile):
     df_train_joined = None
     df_test_joined = None
     data_columns = []
+
+    if profile_name not in jhkaggle.jhkaggle_config['JOIN_PROFILES']:
+        raise Error(f"Undefined join profile: {profile_name}")
+    profile = jhkaggle.jhkaggle_config['JOIN_PROFILES'][profile_name]
+    folds = jhkaggle.jhkaggle_config['FOLDS']
+    seed = jhkaggle.jhkaggle_config['SEED']
 
     if len(profile['ORIG_FIELDS']) > 0:
         df_train_orig = pd.read_csv(os.path.join(PATH, "train.csv"), na_values=NA_VALUES)
@@ -39,8 +37,9 @@ def perform_join(profile):
             filename_train = "data-{}-train.csv".format(source)
             filename_test = "data-{}-test.csv".format(source)
             
-        df_train = load_pandas(filename_train)
-        df_test = load_pandas(filename_test)
+        df_train = jhkaggle.util.load_pandas(filename_train)
+        df_test = jhkaggle.util.load_pandas(filename_test)
+        #df_train = df_train[0:10000]
 
         df_train.sort_values(by=['id'], ascending=[1], inplace=True)
         df_test.sort_values(by=['id'], ascending=[1], inplace=True)
@@ -93,16 +92,23 @@ def perform_join(profile):
     # Designate folds
     print("Folding")
     df_train_joined.insert(1, 'fold', 0)
-    kf = KFold(FOLDS, shuffle=True, random_state=SEED)
+
     fold = 1
-    fold = 1
-    for train, test in kf.split(df_train_joined):
-        df_train_joined.ix[test, 'fold'] = fold
-        fold += 1
+    if fit_type == jhkaggle.const.FIT_TYPE_REGRESSION:
+        kf = KFold(folds, shuffle=True, random_state=seed)
+        for train, test in kf.split(df_train_joined):
+            df_train_joined.ix[test, 'fold'] = fold
+            fold += 1
+    else:
+        targets = df_train_joined[target_name]
+        kf = StratifiedKFold(folds, shuffle=True, random_state=seed)
+        for train, test in kf.split(df_train_joined, targets):
+            df_train_joined.ix[test, 'fold'] = fold
+            fold += 1
 
     # Write joined files
     print("Writing output...")
-    save_pandas(df_train_joined,"train-joined-{}.pkl".format(profile['name']))
-    save_pandas(df_test_joined,"test-joined-{}.pkl".format(profile['name']))
-
-perform_join(PROFILE_1)
+    jhkaggle.util.save_pandas(df_train_joined,f"train-joined-{profile_name}.pkl")
+    jhkaggle.util.save_pandas(df_test_joined,f"test-joined-{profile_name}.pkl")
+    jhkaggle.util.save_pandas(df_train_joined,f"train-joined-{profile_name}.csv")
+    jhkaggle.util.save_pandas(df_test_joined,f"test-joined-{profile_name}.csv")

@@ -21,12 +21,15 @@ from sklearn.decomposition import PCA, FastICA
 from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics import r2_score
 import os
-from config import *
+import config
+import jhkaggle
+import jhkaggle.util
 
 data_name = "ker1"
 
-train = pd.read_csv(os.path.join(PATH, 'train.csv'))
-test = pd.read_csv(os.path.join(PATH, 'test.csv'))
+path = jhkaggle.jhkaggle_config['PATH']
+train = pd.read_csv(os.path.join(path, 'train.csv'))
+test = pd.read_csv(os.path.join(path, 'test.csv'))
 
 for c in train.columns:
     if train[c].dtype == 'object':
@@ -89,5 +92,5 @@ test.rename(columns={'ID':'id'},inplace=True)
 
 
 
-train.to_csv(os.path.join(PATH, "data-{}-train.csv".format(data_name)), index=False)
-test.to_csv(os.path.join(PATH, "data-{}-test.csv".format(data_name)), index=False)
+train.to_csv(os.path.join(path, "data-{}-train.csv".format(data_name)), index=False)
+test.to_csv(os.path.join(path, "data-{}-test.csv".format(data_name)), index=False)

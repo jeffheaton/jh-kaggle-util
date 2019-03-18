@@ -4,7 +4,7 @@
 # 
 # Utility functions.
 #
-from config import *
+import jhkaggle.const
 import codecs
 import math
 import csv
@@ -15,7 +15,7 @@ import shutil
 import os
 import time
 from tqdm import tqdm
-from sklearn.metrics import log_loss
+from sklearn.metrics import log_loss,auc,roc_curve
 import zipfile
 import scipy
 from sklearn.metrics import r2_score
@@ -25,16 +25,18 @@ from sklearn.utils import check_array
 NA_VALUES = ['NA', '?', '-inf', '+inf', 'inf', '', 'nan']
 
 def save_pandas(df,filename):
+    path = jhkaggle.jhkaggle_config['PATH']
     if filename.endswith(".csv"):
-        df.to_csv(os.path.join(PATH, filename),index=False)
+        df.to_csv(os.path.join(path, filename),index=False)
     elif filename.endswith(".pkl"):
-        df.to_pickle(os.path.join(PATH, filename))
+        df.to_pickle(os.path.join(path, filename))
 
 def load_pandas(filename):
+    path = jhkaggle.jhkaggle_config['PATH']
     if filename.endswith(".csv"):
-        return pd.read_csv(os.path.join(PATH, filename), na_values=NA_VALUES)
+        return pd.read_csv(os.path.join(path, filename), na_values=NA_VALUES)
     elif filename.endswith(".pkl"):
-        return pd.read_pickle(os.path.join(PATH, filename))
+        return pd.read_pickle(os.path.join(path, filename))
 
 
 def balance(df_train):
@@ -165,7 +167,8 @@ def chart_regression(pred, y):
 # Get a new directory to hold checkpoints from a neural network.  This allows the neural network to be
 # loaded later.  If the erase param is set to true, the contents of the directory will be cleared.
 def get_model_dir(name, erase):
-    model_dir = os.path.join(PATH, name)
+    path = jhkaggle.jhkaggle_config['PATH']
+    model_dir = os.path.join(path, name)
     os.makedirs(model_dir, exist_ok=True)
     if erase and len(model_dir) > 4 and os.path.isdir(model_dir):
         shutil.rmtree(model_dir, ignore_errors=True)  # be careful, this deletes everything below the specified path
@@ -193,7 +196,7 @@ def create_submit_package(name, score):
     score_str = str(round(float(score), 6)).replace('.', 'p')
     time_str = time.strftime("%Y%m%d-%H%M%S")
     filename = name + "-" + score_str + "_" + time_str
-    path = os.path.join(PATH, filename)
+    path = os.path.join(jhkaggle.jhkaggle_config['PATH'], filename)
     if not os.path.exists(path):
         os.makedirs(path)
     return path, score_str, time_str
@@ -203,10 +206,16 @@ def stretch(y):
     return (y - y.min()) / (y.max() - y.min())
 
 def model_score(y_pred,y_valid):
-    if FINAL_EVAL == EVAL_R2:
+    final_eval = jhkaggle.jhkaggle_config['FINAL_EVAL']
+    if final_eval == jhkaggle.const.EVAL_R2:
         return r2_score(y_valid, y_pred)
-    elif FINAL_EVAL == EVAL_LOGLOSS:
+    elif final_eval == jhkaggle.const.EVAL_LOGLOSS:
         return log_loss(y_valid, y_pred)
+    elif final_eval == jhkaggle.const.EVAL_AUC:
+        fpr, tpr, thresholds = roc_curve(y_valid, y_pred, pos_label=1)
+        return auc(fpr, tpr)
+    else:
+        raise Exception(f"Unknown FINAL_EVAL: {final_eval}")
 
 
 
@@ -314,6 +323,9 @@ class TrainModel:
         self.pred_denom = 1
 
     def _run_assemble(self):
+        target_name = jhkaggle.jhkaggle_config['TARGET_NAME']
+        test_id = jhkaggle.jhkaggle_config['TEST_ID']
+
         print("Training done, generating submission file")
 
         if len(self.scores)==0:
@@ -332,8 +344,8 @@ class TrainModel:
         filename_txt = os.path.join(path, filename) + ".txt"
 
         sub = pd.DataFrame()
-        sub[TEST_ID] = self.submit_ids
-        sub[TARGET_NAME] = self.final_preds_submit / self.pred_denom
+        sub[test_id] = self.submit_ids
+        sub[target_name] = self.final_preds_submit / self.pred_denom
         print("Pred denom: {}".format(self.pred_denom))
         sub.to_csv(filename_csv, index=False)
 
@@ -404,11 +416,13 @@ class GenerateDataFile:
         return False
 
     def preprocess(self,ifile):
+        target_name = jhkaggle.jhkaggle_config['TARGET_NAME']
+        
         header_idx = {key: value for (value, key) in enumerate(next(ifile))}
 
         for row in tqdm(ifile):
-            if TARGET_NAME in header_idx:
-                target = row[header_idx[TARGET_NAME]]
+            if target_name in header_idx:
+                target = row[header_idx[target_name]]
             else:
                 target = None
 
@@ -426,16 +440,18 @@ class GenerateDataFile:
 
     def process(self, task, ifile, ofile):
         global global_target
+        target_name = jhkaggle.jhkaggle_config['TARGET_NAME']
+        fit_type = jhkaggle.jhkaggle_config['FIT_TYPE']
         print("Process: {}".format(task))
 
         header_idx = {key: value for (value, key) in enumerate(next(ifile))}
 
         i = 0
         for row in tqdm(ifile):
-            id = int(row[0])
+            id = row[0]
 
-            if TARGET_NAME in header_idx:
-                target = row[header_idx[TARGET_NAME]]
+            if target_name in header_idx:
+                target = row[header_idx[target_name]]
             else:
                 target = None
 
@@ -448,8 +464,8 @@ class GenerateDataFile:
                 global_target = float(target)
                 ofile.writerow(row2 + values + [target])
 
-                if FIT_TYPE == FIT_TYPE_BINARY_CLASSIFICATION:
-                    self.track_binary(values,target)
+                #if fit_type == jhkaggle.const.FIT_TYPE_BINARY_CLASSIFICATION:
+                #    self.track_binary(values,target)
 
 
             else:
@@ -460,7 +476,7 @@ class GenerateDataFile:
             if self.max_lines is not None and i>self.max_lines:
                 break
 
-    def track_binary(self):
+    def track_binary(self,values,target):
         for col, value in zip(self.columns, values):
             if int(target) == 1:
                 self.stats_pos[col.name].append(float(value))
@@ -468,42 +484,47 @@ class GenerateDataFile:
                 self.stats_neg[col.name].append(float(value))
 
     def report(self):
-        if FIT_TYPE == FIT_TYPE_BINARY_CLASSIFICATION:
-            for col in self.columns:
-                p = self.stats_pos[col.name]
-                n = self.stats_neg[col.name]
-                mean_p = sum(p)/float(len(p))
-                mean_n = sum(n)/float(len(n))
-                print("{}:pos={},neg={},diff={}".format(col.name,mean_p,mean_n,abs(mean_p-mean_n)))
+        fit_type = jhkaggle.jhkaggle_config['FIT_TYPE']
+
+#        if fit_type == jhkaggle.const.FIT_TYPE_BINARY_CLASSIFICATION:
+#            for col in self.columns:
+#                p = self.stats_pos[col.name]
+#                n = self.stats_neg[col.name]
+#                mean_p = sum(p)/float(len(p))
+#                mean_n = sum(n)/float(len(n))
+#                print("{}:pos={},neg={},diff={}".format(col.name,mean_p,mean_n,abs(mean_p-mean_n)))
 
 
     def run(self):
-        filename_read_train = os.path.join(PATH, "train.csv")
-        filename_read_test = os.path.join(PATH, "test.csv")
+        path = jhkaggle.jhkaggle_config['PATH']
+        encoding = jhkaggle.jhkaggle_config['ENCODING']
 
-        filename_write_train = os.path.join(PATH, "data-{}-train.csv".format(self.name))
-        filename_write_test = os.path.join(PATH, "data-{}-test.csv".format(self.name))
+        filename_read_train = os.path.join(path, "train.csv")
+        filename_read_test = os.path.join(path, "test.csv")
 
-        filename_write_train2 = os.path.join(PATH, "data-{}-train.pkl".format(self.name))
-        filename_write_test2 = os.path.join(PATH, "data-{}-test.pkl".format(self.name))
+        filename_write_train = os.path.join(path, "data-{}-train.csv".format(self.name))
+        filename_write_test = os.path.join(path, "data-{}-test.csv".format(self.name))
+
+        filename_write_train2 = os.path.join(path, "data-{}-train.pkl".format(self.name))
+        filename_write_test2 = os.path.join(path, "data-{}-test.pkl".format(self.name))
 
         start_time = time.time()
 
         if self.preprocess_needed():
-            with codecs.open(filename_read_train, "r", ENCODING) as fhr1:
+            with codecs.open(filename_read_train, "r", encoding) as fhr1:
                 reader_train = csv.reader(fhr1)
                 self.preprocess(reader_train)
 
-            with codecs.open(filename_read_test, "r", ENCODING) as fhr2:
+            with codecs.open(filename_read_test, "r", encoding) as fhr2:
                 reader_test = csv.reader(fhr2)
                 self.preprocess(reader_test)
 
         self.notify_begin()
 
-        with codecs.open(filename_read_train, "r", ENCODING) as fhr1, \
-                codecs.open(filename_read_test, "r", ENCODING) as fhr2, \
-                codecs.open(filename_write_train, "w", ENCODING) as fhw1, \
-                codecs.open(filename_write_test, "w", ENCODING) as fhw2:
+        with codecs.open(filename_read_train, "r", encoding) as fhr1, \
+                codecs.open(filename_read_test, "r", encoding) as fhr2, \
+                codecs.open(filename_write_train, "w", encoding) as fhw1, \
+                codecs.open(filename_write_test, "w", encoding) as fhw2:
             reader_train = csv.reader(fhr1)
             reader_test = csv.reader(fhr2)
             writer_train = csv.writer(fhw1)
@@ -636,7 +657,7 @@ class StackingEstimator(BaseEstimator, TransformerMixin):
 def load_model(model_name):
     idx = model_name.find('-')
     suffix = model_name[idx:]
-    path = os.path.join(PATH, model_name)
+    path = os.path.join( jhkaggle.jhkaggle_config['PATH'], model_name)
 
     filename_oos = "oos" + suffix + ".csv"
     path_oos = os.path.join(path, filename_oos)

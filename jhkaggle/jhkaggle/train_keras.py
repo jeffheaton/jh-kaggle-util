@@ -1,4 +1,4 @@
-from util import *
+import jhkaggle.util
 import tensorflow as tf
 import scipy.stats
 import numpy as np
@@ -9,7 +9,7 @@ from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
 
 
-class TrainTensorFlow(TrainModel):
+class TrainTensorFlow(jhkaggle.util.TrainModel):
     def __init__(self, data_source, run_single_fold):
         super().__init__(data_source, run_single_fold)
         self.name="tensorflow"
@@ -24,6 +24,7 @@ class TrainTensorFlow(TrainModel):
         return model
 
     def train_model(self, x_train, y_train, x_val, y_val):
+        fit_type = jhkaggle.jhkaggle_config['FIT_TYPE']
 
         if type(x_train) is not np.ndarray:
             x_train = x_train.values.astype(np.float32)
@@ -36,7 +37,7 @@ class TrainTensorFlow(TrainModel):
             if type(y_val) is not np.ndarray:
                 y_val = y_val.values.astype(np.int32)
 
-        if FIT_TYPE == FIT_TYPE_REGRESSION:
+        if fit_type == jhkaggle.const.FIT_TYPE_REGRESSION:
             model = self.define_neural_network(x_train)
             model.add(Dense(1))
             model.compile(loss='mean_squared_error', optimizer='adam')
@@ -62,30 +63,15 @@ class TrainTensorFlow(TrainModel):
         return model
 
     def predict_model(self, model, x):
+        fit_type = jhkaggle.jhkaggle_config['FIT_TYPE']
+
         if type(x) is not np.ndarray:
             x = x.values.astype(np.float32)
 
-        if FIT_TYPE == FIT_TYPE_REGRESSION:
+        if fit_type == jhkaggle.const.FIT_TYPE_REGRESSION:
             pred = model.predict(x)
         else:
             pred = model.predict(x)
             pred = np.array([v[1] for v in pred])
         return pred.flatten()
-
-# "all the time" to "always"
-# reall short ones that are dead wrong
-
-# [100]	train-logloss:0.288795	eval-logloss:0.329036
-# [598]	train-logloss:0.152968	eval-logloss:0.296854
-# [984]	train-logloss:0.096444	eval-logloss:0.293915
-
-tf.logging.set_verbosity(tf.logging.INFO)
-
-start_time = time.time()
-train = TrainTensorFlow("1",False)
-train.zscore = False
-train.run()
-
-elapsed_time = time.time() - start_time
-print("Elapsed time: {}".format(hms_string(elapsed_time)))
 

@@ -1,0 +1,12 @@
+{
+  "mercedes": {
+    "TRAIN_ID": "ID",
+    "TEST_ID": "ID",
+    "GOAL_MINIMIZE": 0,
+    "ENCODING": "utf-8",
+    "TARGET_NAME": "y",
+    "FIT_TYPE": "reg",
+    "FINAL_EVAL": "r2",
+    "PATH": "/Users/jheaton/data/kaggle/mercedes"
+  }
+}

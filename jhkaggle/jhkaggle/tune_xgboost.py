@@ -28,7 +28,7 @@ from train_xgboost import TrainXGBoost
 
 FOLDS = 5
 EARLY_STOP = 50
-MAX_ROUNDS = 10000
+MAX_ROUNDS = 5
 
 PARAMS1 = {
 'objective': 'reg:linear',

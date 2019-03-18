@@ -4,26 +4,22 @@
 # 
 # Train from a SK-Learn model.
 
-from util import *
+import jhkaggle.util
 import tensorflow as tf
 import tensorflow.contrib.learn as learn
 import scipy.stats
 import numpy as np
 import time
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.ensemble import AdaBoostRegressor
 import sklearn
 from sklearn.ensemble import RandomForestRegressor
 
-class TrainSKLearn(TrainModel):
+class TrainSKLearn(jhkaggle.util.TrainModel):
     def __init__(self, data_set, name, alg, run_single_fold):
         super().__init__(data_set, run_single_fold)
         self.name=name
         self.alg=alg
         self.early_stop = 50
         self.params = str(alg)
-
 
     def train_model(self, x_train, y_train, x_val, y_val):
         print("Training SKLearn model: {}".format(self.alg))
@@ -42,9 +38,10 @@ class TrainSKLearn(TrainModel):
         return self.alg
 
     def predict_model(self, clr, x):
+        fit_type = jhkaggle.jhkaggle_config['FIT_TYPE']
         x = x.values.astype(np.float32)
 
-        if FIT_TYPE == FIT_TYPE_REGRESSION:
+        if fit_type == jhkaggle.const.FIT_TYPE_REGRESSION:
             return clr.predict(x)
         else:
             pred = clr.predict_proba(x)
@@ -58,21 +55,3 @@ class TrainSKLearn(TrainModel):
 # [598]	train-logloss:0.152968	eval-logloss:0.296854
 # [984]	train-logloss:0.096444	eval-logloss:0.293915
 
-n_trees = 100
-n_folds = 3
-
-# https://www.analyticsvidhya.com/blog/2015/06/tuning-random-forest-model/
-alg_list = [
-    ['rforest',RandomForestRegressor(n_estimators=1000, n_jobs=-1, max_depth=3, criterion='mae')],
-    ['extree',ExtraTreesClassifier(n_estimators = 1000,max_depth=2)],
-    ['adaboost',AdaBoostRegressor(base_estimator=None, n_estimators=600, learning_rate=1.0, random_state=20160703)],
-    ['knn', sklearn.neighbors.KNeighborsRegressor(n_neighbors=5)]
-]
-
-start_time = time.time()
-for name,alg in alg_list:
-    train = TrainSKLearn("1",name,alg,False)
-    train.run()
-    train = None
-elapsed_time = time.time() - start_time
-print("Elapsed time: {}".format(hms_string(elapsed_time)))

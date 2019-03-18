@@ -6,7 +6,10 @@
 # These features individual feature files are then joined together (by joiner.py) to become
 # the feature vector that training actually occurs on. 
 import numpy as np
-from util import *
+import config
+import jhkaggle
+import jhkaggle.util
+from jhkaggle.util import PassThru
 
 # from nltk.tokenize.moses import MosesTokenizer
 
@@ -127,7 +130,7 @@ class BooleanTFIDF:
 
 columns = [
     BooleanTFIDF("btfidf",pass_columns),
-    SumColumns('bool_count',pass_columns),
+    jhkaggle.util.SumColumns('bool_count',pass_columns),
     #CatMeanTarget('y','X0'),
     #CatMeanTarget('y','X1'),
     #CatMeanTarget('y','X2'),
@@ -150,7 +153,7 @@ columns = [
 ]
 
 
-gen = GenerateDataFile("jth-1", columns)
+gen = jhkaggle.util.GenerateDataFile("jth-1", columns)
 #gen.max_lines = 10000
 gen.run()
 gen.report()
