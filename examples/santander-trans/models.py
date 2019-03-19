@@ -76,13 +76,6 @@ def run_sklearn():
   elapsed_time = time.time() - start_time
   print("Elapsed time: {}".format(jhkaggle.util.hms_string(elapsed_time)))
 
-def run_ensemble():
-  MODELS = [
-    'adaboost--0p177277_20190108-203117',
-    'xgboost-0p576786_20190108-212139'
-  ]
-  ensemble(MODELS)
-
 def run_lgb():
   params = {
     'bagging_freq': 5,          
@@ -105,7 +98,5 @@ def run_lgb():
 
 if __name__ == "__main__":
     #run_xgboost()
-    #run_keras()
     run_sklearn()
-    #run_ensemble()
     #run_lgb()

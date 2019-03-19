@@ -1,0 +1,42 @@
+{
+  "mercedes": {
+    "TRAIN_ID": "ID",
+    "TEST_ID": "ID",
+    "GOAL_MINIMIZE": 0,
+    "ENCODING": "utf-8",
+    "TARGET_NAME": "y",
+    "FIT_TYPE": "reg",
+    "FINAL_EVAL": "r2",
+    "FOLDS": 3,
+    "SEED": 42,
+    "JOIN_PROFILES": {
+      "1": {
+        "SOURCES" : ["jth-1","ker1"],
+        "BALANCE" : 0,
+        "IGNORE" : [],
+        "ORIG_FIELDS" : []
+      }
+    },
+    "PATH": "/Users/jheaton/data/kaggle/mercedes"
+  },
+  "santander-trans": {
+    "TRAIN_ID": "ID_code",
+    "TEST_ID": "ID_code",
+    "GOAL_MINIMIZE": 0,
+    "ENCODING": "utf-8",
+    "TARGET_NAME": "target",
+    "FIT_TYPE": "bclass",
+    "FINAL_EVAL": "auc",
+    "FOLDS": 5,
+    "SEED": 42,
+    "JOIN_PROFILES": {
+      "1": {
+        "SOURCES" : ["jth-1"],
+        "BALANCE" : 0,
+        "IGNORE" : [],
+        "ORIG_FIELDS" : []
+      }
+    },
+    "PATH": "/Users/jheaton/data/kaggle/santander-trans"
+  }
+}
