@@ -12,7 +12,7 @@ from keras.callbacks import ModelCheckpoint
 class TrainTensorFlow(jhkaggle.util.TrainModel):
     def __init__(self, data_source, run_single_fold):
         super().__init__(data_source, run_single_fold)
-        self.name="tensorflow"
+        self.name="keras"
         self.params = []
         self.early_stop = 50
 
@@ -74,4 +74,8 @@ class TrainTensorFlow(jhkaggle.util.TrainModel):
             pred = model.predict(x)
             pred = np.array([v[1] for v in pred])
         return pred.flatten()
+
+    def save_model(self, name):
+        print("Saving Model")
+        self.model.save(name + ".h5")
 

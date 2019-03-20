@@ -11,6 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import AdaBoostRegressor
+from sklearn.linear_model import LinearRegression
 
 # Modify the code in this function to build your own XGBoost trainers
 # It will br executed only when you run this file directly, and not when
@@ -73,10 +74,11 @@ def run_sklearn():
 
   # https://www.analyticsvidhya.com/blog/2015/06/tuning-random-forest-model/
   alg_list = [
-      ['rforest',RandomForestRegressor(n_estimators=1000, n_jobs=-1, max_depth=3, criterion='mae')],
-      ['extree',ExtraTreesClassifier(n_estimators = 1000,max_depth=2)],
-      ['adaboost',AdaBoostRegressor(base_estimator=None, n_estimators=600, learning_rate=1.0, random_state=20160703)],
-      ['knn', sklearn.neighbors.KNeighborsRegressor(n_neighbors=5)]
+      ['lreg',LinearRegression()]
+      #['rforest',RandomForestRegressor(n_estimators=1000, n_jobs=-1, max_depth=3, criterion='mae')],
+      #['extree',ExtraTreesClassifier(n_estimators = 1000,max_depth=2)],
+      #['adaboost',AdaBoostRegressor(base_estimator=None, n_estimators=600, learning_rate=1.0, random_state=20160703)],
+      #['knn', sklearn.neighbors.KNeighborsRegressor(n_neighbors=5)]
   ]
 
   start_time = time.time()
@@ -89,8 +91,8 @@ def run_sklearn():
 
 def run_ensemble():
   MODELS = [
-    'adaboost--0p177277_20190108-203117',
-    'xgboost-0p576786_20190108-212139'
+    'xgboost-0p576026_20190319-181720',
+    'keras-0p463293_20190319-185422'
   ]
   ensemble(MODELS)
 

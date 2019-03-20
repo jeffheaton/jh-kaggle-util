@@ -12,6 +12,7 @@ import numpy as np
 import time
 import sklearn
 from sklearn.ensemble import RandomForestRegressor
+import pickle
 
 class TrainSKLearn(jhkaggle.util.TrainModel):
     def __init__(self, data_set, name, alg, run_single_fold):
@@ -37,21 +38,14 @@ class TrainSKLearn(jhkaggle.util.TrainModel):
         #self.classifier = clr.best_iteration
         return self.alg
 
-    def predict_model(self, clr, x):
+    def predict_model(self, model, x):
         fit_type = jhkaggle.jhkaggle_config['FIT_TYPE']
         x = x.values.astype(np.float32)
 
         if fit_type == jhkaggle.const.FIT_TYPE_REGRESSION:
-            return clr.predict(x)
+            return model.predict(x)
         else:
-            pred = clr.predict_proba(x)
+            pred = model.predict_proba(x)
             pred = np.array([v[1] for v in pred])
             return pred
-
-# "all the time" to "always"
-# reall short ones that are dead wrong
-
-# [100]	train-logloss:0.288795	eval-logloss:0.329036
-# [598]	train-logloss:0.152968	eval-logloss:0.296854
-# [984]	train-logloss:0.096444	eval-logloss:0.293915
 

@@ -24,27 +24,26 @@ class TrainXGBoost(jhkaggle.util.TrainModel):
 
     def train_model(self, x_train, y_train, x_val, y_val):
         print("Will train XGB for {} rounds, RandomSeed: {}".format(self.rounds, self.params['seed']))
-        #x_train = scipy.stats.zscore(x_train)
 
         xg_train = xgb.DMatrix(x_train, label=y_train)
 
         if y_val is None:
             watchlist = [(xg_train, 'train')]
-            clr = xgb.train(self.params, xg_train, self.rounds, watchlist)
+            model = xgb.train(self.params, xg_train, self.rounds, watchlist)
         else:
             early_stop = self.rounds if self.early_stop == 0 else self.early_stop
             xg_val = xgb.DMatrix(x_val, label=y_val)
             watchlist = [(xg_train, 'train'), (xg_val, 'eval')]
-            clr = xgb.train(self.params, xg_train, self.rounds, watchlist, early_stopping_rounds=early_stop)
+            model = xgb.train(self.params, xg_train, self.rounds, watchlist, early_stopping_rounds=early_stop)
 
-        self.steps = clr.best_iteration
-        return clr
+        self.steps = model.best_iteration
+        return model
 
-    def predict_model(self, clr, X_test):
-        return clr.predict(xgb.DMatrix(X_test))
+    def predict_model(self, model, X_test):
+        return model.predict(xgb.DMatrix(X_test))
 
     def feature_rank(self,output):
-        rank = self.clr.get_fscore()
+        rank = self.model.get_fscore()
         rank_sort = sorted(rank.items(), key=operator.itemgetter(1))
         rank_sort.reverse()
         for f in rank_sort:

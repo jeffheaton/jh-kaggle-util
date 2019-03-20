@@ -30,7 +30,7 @@ def fit_ensemble(x,y):
         else:
             # blend = SGDRegressor()
             #blend = LinearRegression()
-            #blend = RandomForestRegressor(n_estimators=1000, n_jobs=-1, max_depth=5)
+            #blend = RandomForestRegressor(n_estimators=10, n_jobs=-1, max_depth=5, criterion='mae')
             blend = LassoLarsCV(normalize=True)
             #blend = ElasticNetCV(normalize=True)
             #blend = LinearRegression(normalize=True)
@@ -176,12 +176,14 @@ def ensemble(models):
 
     output = ""
 
+    elapsed_time = time.time() - start_time
+
+    output += "Elapsed time: {}\n".format(jhkaggle.util.hms_string(elapsed_time))
     output += "OOS score: {}\n".format(score)
     output += "-----Blend Results-------\n"
 
-    z = abs(blend.coef_[0])
+    z = abs(blend.coef_)
     z = z / z.sum()
-
     for name, d in zip(models, z):
         output += "{} : {}\n".format(d, name)
 
@@ -190,8 +192,3 @@ def ensemble(models):
 
     with open(filename_txt, "w") as text_file:
         text_file.write(output)
-
-    elapsed_time = time.time() - start_time
-
-    output += "Elapsed time: {}\n".format(jhkaggle.util.hms_string(elapsed_time))
- 

@@ -10,6 +10,7 @@ import math
 import csv
 import pandas as pd
 import numpy as np
+import pickle
 from sklearn import preprocessing
 import shutil
 import os
@@ -286,12 +287,12 @@ class TrainModel:
 
             print("Training data: X_train: {}, Y_train: {}, X_test: {}".format(fold_x_train.shape, len(fold_y_train),
                                                                                self.x_submit.shape))
-            self.clr = self.train_model(fold_x_train, fold_y_train, fold_x_valid, fold_y_valid)
-            preds_valid = self.predict_model(self.clr, fold_x_valid)
+            self.model = self.train_model(fold_x_train, fold_y_train, fold_x_valid, fold_y_valid)
+            preds_valid = self.predict_model(self.model, fold_x_valid)
 
             score = model_score(preds_valid,fold_y_valid)
 
-            preds_submit = self.predict_model(self.clr, self.x_submit)
+            preds_submit = self.predict_model(self.model, self.x_submit)
 
             self.final_preds_train[mask_test] = preds_valid
             self.final_preds_submit += preds_submit
@@ -311,15 +312,15 @@ class TrainModel:
     def _run_single(self):
         print("Training data: X_train: {}, Y_train: {}, X_test: {}".format(self.x_train.shape, len(self.y_train),
                                                                                self.x_submit.shape))
-        self.clr = self.train_model(self.x_train, self.y_train, None, None)
+        self.model = self.train_model(self.x_train, self.y_train, None, None)
 
 #        if not self.run_single_fold:
-#            self.preds_oos = self.predict_model(self.clr, self.x_train)
+#            self.preds_oos = self.predict_model(self.model, self.x_train)
 
         #score = 0 #log_loss(fold_y_valid, self.preds_oos)
 
         #self.final_preds_train = self.preds_oos
-        self.final_preds_submit = self.predict_model(self.clr, self.x_submit)
+        self.final_preds_submit = self.predict_model(self.model, self.x_submit)
         self.pred_denom = 1
 
     def _run_assemble(self):
@@ -342,6 +343,7 @@ class TrainModel:
         filename_csv = os.path.join(path, filename) + ".csv"
         filename_zip = os.path.join(path, filename) + ".zip"
         filename_txt = os.path.join(path, filename) + ".txt"
+        filename_model = os.path.join(path, "model")
 
         sub = pd.DataFrame()
         sub[test_id] = self.submit_ids
@@ -375,8 +377,10 @@ class TrainModel:
         output += "Columns Used: {}\n".format(self.input_columns2)
         output += "Steps: {}\n".format(self.steps)
 
-
+        output += "*** Model Specific Feature Importance ***\n"
         output = self.feature_rank(output)
+
+        self.save_model(filename_model)
 
         print(output)
 
@@ -395,6 +399,11 @@ class TrainModel:
         print("Fitting single model for entire training set.")
         self._run_single()
         self._run_assemble()
+
+    def save_model(self, name):
+        print("Saving Model")
+        with open(name + ".pkl", 'wb') as fp:  
+            pickle.dump(self.model, fp)
 
 class GenerateDataFile:
     def __init__(self, name, columns):
