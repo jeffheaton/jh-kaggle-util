@@ -11,6 +11,7 @@ import jhkaggle.util
 from sklearn.model_selection import KFold,StratifiedKFold
 
 def perform_join(profile_name):
+    path = jhkaggle.jhkaggle_config['PATH']
     fit_type = jhkaggle.jhkaggle_config['FIT_TYPE']
     target_name = jhkaggle.jhkaggle_config['TARGET_NAME']
 
@@ -25,15 +26,15 @@ def perform_join(profile_name):
     seed = jhkaggle.jhkaggle_config['SEED']
 
     if len(profile['ORIG_FIELDS']) > 0:
-        df_train_orig = pd.read_csv(os.path.join(PATH, "train.csv"), na_values=NA_VALUES)
-        df_test_orig = pd.read_csv(os.path.join(PATH, "test.csv"), na_values=NA_VALUES)
+        df_train_orig = pd.read_csv(os.path.join(path, "train.csv"), na_values=NA_VALUES)
+        df_test_orig = pd.read_csv(os.path.join(path, "test.csv"), na_values=NA_VALUES)
 
     for source in profile['SOURCES']:
         print("Processing: {}".format(source))
         filename_train = "data-{}-train.pkl".format(source)
         filename_test = "data-{}-test.pkl".format(source)
 
-        if not os.path.exists(filename_train):
+        if not os.path.exists(os.path.join(path, filename_train)):
             filename_train = "data-{}-train.csv".format(source)
             filename_test = "data-{}-test.csv".format(source)
             

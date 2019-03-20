@@ -8,6 +8,7 @@ from jhkaggle.joiner import perform_join
 from jhkaggle.ensemble_glm import ensemble
 import time
 import sklearn
+import os
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import ExtraTreesClassifier
@@ -77,6 +78,7 @@ def run_sklearn():
   print("Elapsed time: {}".format(jhkaggle.util.hms_string(elapsed_time)))
 
 def run_lgb():
+  os.environ['KMP_DUPLICATE_LIB_OK']='True'
   params = {
     'bagging_freq': 5,          
     'bagging_fraction': 0.38,   'boost_from_average':'false',   
@@ -98,5 +100,5 @@ def run_lgb():
 
 if __name__ == "__main__":
     #run_xgboost()
-    run_sklearn()
-    #run_lgb()
+    #run_sklearn()
+    run_lgb()
