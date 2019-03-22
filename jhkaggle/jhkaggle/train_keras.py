@@ -3,13 +3,14 @@ import tensorflow as tf
 import scipy.stats
 import numpy as np
 import time
+import os
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
 
 
-class TrainTensorFlow(jhkaggle.util.TrainModel):
+class TrainKeras(jhkaggle.util.TrainModel):
     def __init__(self, data_source, run_single_fold):
         super().__init__(data_source, run_single_fold)
         self.name="keras"
@@ -75,7 +76,22 @@ class TrainTensorFlow(jhkaggle.util.TrainModel):
             pred = np.array([v[1] for v in pred])
         return pred.flatten()
 
-    def save_model(self, name):
+    def save_model(self, path, name):
         print("Saving Model")
-        self.model.save(name + ".h5")
+
+        self.model.save(os.path.join(path, name + ".h5"))
+
+        meta = {
+            'name': 'TrainKeras',
+            'data_source': self.data_source,
+            'params': self.params
+        }
+        
+        with open(os.path.join(path,"meta.json"), 'w') as outfile:
+            json.dump(meta, outfile)
+
+
+
+
+        
 

@@ -98,8 +98,8 @@ def run_ensemble():
 
 
 if __name__ == "__main__":
-    #run_xgboost()
+    run_xgboost()
     #run_keras()
     #run_sklearn()
-    run_ensemble()
+    #run_ensemble()
 

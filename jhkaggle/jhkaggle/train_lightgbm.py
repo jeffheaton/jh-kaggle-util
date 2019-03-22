@@ -14,11 +14,12 @@ from sklearn.metrics import log_loss
 import lightgbm as lgb
 import scipy
 import jhkaggle.util
+import json
 
 class TrainLightGBM(jhkaggle.util.TrainModel):
     def __init__(self, data_source, params, run_single_fold):
         super().__init__(data_source, run_single_fold)
-        self.name="lgb"
+        self.name = "lgb"
         self.params = params
         self.rounds = 25000
         self.early_stop = 50
@@ -53,7 +54,25 @@ class TrainLightGBM(jhkaggle.util.TrainModel):
             output += f"{row}\n"
         return output
 
-    def save_model(self, name):
+    def save_model(self, path, name):
         print("Saving Model")
-        self.model.save_model(name + ".txt")
+        self.model.save_model(os.path.join(path,name + ".txt"))
+        meta = {
+            'name': 'TrainLightGBM',
+            'data_source': self.data_source,
+            'params': self.params
+        }
+        
+        with open(os.path.join(path,"meta.json"), 'w') as outfile:
+            json.dump(meta, outfile)
+
+    def load_model(path,name):
+        root = jhkaggle.jhkaggle_config['PATH']
+        model_path = os.path.join(root,path)
+        meta_filename = os.path.join(model_path,"meta.json")
+        with open(meta_filename, 'r') as fp:
+            meta = json.load(fp)
+        result = TrainLightGBM(meta['data_source'],meta['params'],False)
+        result.model = lgb.Booster(model_file=os.path.join(model_path,name+".txt"))
+        return result
         

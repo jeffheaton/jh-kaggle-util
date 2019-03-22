@@ -19,6 +19,7 @@ from tqdm import tqdm
 from sklearn.metrics import log_loss,auc,roc_curve
 import zipfile
 import scipy
+import json
 from sklearn.metrics import r2_score
 from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
 from sklearn.utils import check_array
@@ -304,6 +305,9 @@ class TrainModel:
 
             self.scores.append(score)
             print("Fold score: {}".format(score))
+
+            if fold_no==1:
+                self.model_fold1 = self.model
         self.score = np.mean(self.scores)
 
         if len(self.cv_steps)>0:
@@ -343,7 +347,6 @@ class TrainModel:
         filename_csv = os.path.join(path, filename) + ".csv"
         filename_zip = os.path.join(path, filename) + ".zip"
         filename_txt = os.path.join(path, filename) + ".txt"
-        filename_model = os.path.join(path, "model")
 
         sub = pd.DataFrame()
         sub[test_id] = self.submit_ids
@@ -353,7 +356,6 @@ class TrainModel:
 
         z = zipfile.ZipFile(filename_zip, 'w', zipfile.ZIP_DEFLATED)
         z.write(filename_csv, filename + ".csv")
-        # os.remove(filename_csv)
         output = ""
         # Generate training OOS file
         if not self.run_single_fold:
@@ -365,6 +367,12 @@ class TrainModel:
             sub['predicted'] = self.final_preds_train
             sub.to_csv(filename, index=False)
             output+="OOS Score: {}".format(model_score(self.final_preds_train,self.y_train))
+            self.save_model(path, 'model-submit')
+            if self.model_fold1:
+                t = self.model
+                self.model = self.model_fold1
+                self.save_model(path, 'model-fold1')
+                self.model = t
 
         print("Generated: {}".format(path))
         elapsed_time = time.time() - self.start_time
@@ -379,8 +387,6 @@ class TrainModel:
 
         output += "*** Model Specific Feature Importance ***\n"
         output = self.feature_rank(output)
-
-        self.save_model(filename_model)
 
         print(output)
 
@@ -400,10 +406,32 @@ class TrainModel:
         self._run_single()
         self._run_assemble()
 
-    def save_model(self, name):
+    def save_model(self, path, name):
         print("Saving Model")
-        with open(name + ".pkl", 'wb') as fp:  
+        with open(os.path.join(path, name + ".pkl"), 'wb') as fp:  
             pickle.dump(self.model, fp)
+
+        meta = {
+            'name': 'TrainKeras',
+            'data_source': self.data_source,
+            'params': self.params
+        }
+        
+        with open(os.path.join(path,"meta.json"), 'w') as outfile:
+            json.dump(meta, outfile)
+
+    @classmethod
+    def load_model(cls,path,name):
+        root = jhkaggle.jhkaggle_config['PATH']
+        model_path = os.path.join(root,path)
+        meta_filename = os.path.join(model_path,"meta.json")
+        with open(meta_filename, 'r') as fp:
+            meta = json.load(fp)
+
+        result = cls(meta['data_source'],meta['params'],False)
+        with open(os.path.join(path, name + ".pkl"), 'rb') as fp:  
+            result.model = pickle.load(fp)
+        return result
 
 class GenerateDataFile:
     def __init__(self, name, columns):
@@ -678,3 +706,7 @@ def load_model(model_name):
 
     return df_oos, df_submit
 
+def save_importance_report(model,imp):
+  root_path = jhkaggle.jhkaggle_config['PATH']
+  model_path = os.path.join(root_path,model)
+  imp.to_csv(os.path.join(model_path,'peturb.csv'),index=False)

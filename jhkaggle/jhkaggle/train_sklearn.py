@@ -11,6 +11,8 @@ import scipy.stats
 import numpy as np
 import time
 import sklearn
+import os
+import json
 from sklearn.ensemble import RandomForestRegressor
 import pickle
 
@@ -40,7 +42,6 @@ class TrainSKLearn(jhkaggle.util.TrainModel):
 
     def predict_model(self, model, x):
         fit_type = jhkaggle.jhkaggle_config['FIT_TYPE']
-        x = x.values.astype(np.float32)
 
         if fit_type == jhkaggle.const.FIT_TYPE_REGRESSION:
             return model.predict(x)
@@ -49,3 +50,15 @@ class TrainSKLearn(jhkaggle.util.TrainModel):
             pred = np.array([v[1] for v in pred])
             return pred
 
+    @classmethod
+    def load_model(cls,path,name):
+        root = jhkaggle.jhkaggle_config['PATH']
+        model_path = os.path.join(root,path)
+        meta_filename = os.path.join(model_path,"meta.json")
+        with open(meta_filename, 'r') as fp:
+            meta = json.load(fp)
+
+        result = cls(meta['data_source'],meta['params'],None,False)
+        with open(os.path.join(model_path, name + ".pkl"), 'rb') as fp:  
+            result.model = pickle.load(fp)
+        return result
