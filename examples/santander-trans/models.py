@@ -87,10 +87,10 @@ def run_lgb():
 
 if __name__ == "__main__":
   start_time = time.time()
-  #run_xgboost()
+  run_xgboost()
   #run_sklearn()
   #run_lgb()
-  run_keras()
+  #run_keras()
 
   elapsed_time = time.time() - start_time
   print("Elapsed time: {}".format(jhkaggle.util.hms_string(elapsed_time)))

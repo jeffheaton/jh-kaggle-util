@@ -16,6 +16,7 @@ def load_model(folder,name):
     meta = json.load(fp)
 
   model_name = meta['name']
+  print(model_name)
 
   if model_name == 'TrainLightGBM':
     return TrainLightGBM.load_model(folder,name)
