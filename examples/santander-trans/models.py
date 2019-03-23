@@ -14,6 +14,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import AdaBoostClassifier
 
 # Modify the code in this function to build your own XGBoost trainers
 # It will br executed only when you run this file directly, and not when
@@ -40,7 +41,7 @@ def run_xgboost():
 
 
 def run_keras():
-  train = jhkaggle.train_keras.TrainTensorFlow("1",False)
+  train = jhkaggle.train_keras.TrainKeras("1",False)
   train.zscore = False
   train.run()
 
@@ -55,8 +56,8 @@ def run_sklearn():
   alg_list = [
       ['rforest',RandomForestClassifier(n_estimators=1000, n_jobs=-1, verbose=1, max_depth=3)],
       ['extree',ExtraTreesClassifier(n_estimators = 1000,max_depth=3,n_jobs=-1)],
- #     ['adaboost',AdaBoostClassifier(base_estimator=None, n_estimators=600, learning_rate=1.0, random_state=20160703)],
- #     ['knn', sklearn.neighbors.KNeighborsClassifier(n_neighbors=5,n_jobs=-1)]
+      ['adaboost',AdaBoostClassifier(base_estimator=None, n_estimators=600, learning_rate=1.0)],
+      ['knn', sklearn.neighbors.KNeighborsClassifier(n_neighbors=5,n_jobs=-1)]
   ]
 
   start_time = time.time()
@@ -86,9 +87,10 @@ def run_lgb():
 
 if __name__ == "__main__":
   start_time = time.time()
-  run_xgboost()
+  #run_xgboost()
   #run_sklearn()
   #run_lgb()
+  run_keras()
 
   elapsed_time = time.time() - start_time
   print("Elapsed time: {}".format(jhkaggle.util.hms_string(elapsed_time)))

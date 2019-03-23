@@ -5,6 +5,7 @@ import numpy as np
 import time
 import os
 import json
+import pandas as pd
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation
 from keras.callbacks import EarlyStopping
@@ -45,6 +46,10 @@ class TrainKeras(jhkaggle.util.TrainModel):
             model.add(Dense(1))
             model.compile(loss='mean_squared_error', optimizer='adam')
         else:
+            y_train = pd.get_dummies(y_train).values.astype(np.float32)
+            if x_val is not None:
+                y_val = pd.get_dummies(y_val).values.astype(np.float32)
+            
             model = self.define_neural_network(x_train)
             model.add(Dense(y_train.shape[1],activation='softmax'))
             model.compile(loss='categorical_crossentropy', optimizer='adam')
