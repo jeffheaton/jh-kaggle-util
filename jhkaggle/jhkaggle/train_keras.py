@@ -4,10 +4,12 @@ import scipy.stats
 import numpy as np
 import time
 import os
+import json
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
+from tensorflow.keras.models import load_model
 
 
 class TrainKeras(jhkaggle.util.TrainModel):
@@ -90,6 +92,17 @@ class TrainKeras(jhkaggle.util.TrainModel):
         with open(os.path.join(path,"meta.json"), 'w') as outfile:
             json.dump(meta, outfile)
 
+    @classmethod
+    def load_model(cls,path,name):
+        root_path = jhkaggle.jhkaggle_config['PATH']
+        model_path = os.path.join(root_path,path)
+        meta_filename = os.path.join(model_path,"meta.json")
+        with open(meta_filename, 'r') as fp:
+            meta = json.load(fp)
+
+        result = TrainKeras(meta['data_source'],False)
+        result.model = load_model(os.path.join(model_path,name + ".h5"))
+        return result
 
 
 

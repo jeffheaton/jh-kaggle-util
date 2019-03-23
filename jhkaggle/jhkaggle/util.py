@@ -412,7 +412,7 @@ class TrainModel:
             pickle.dump(self.model, fp)
 
         meta = {
-            'name': 'TrainKeras',
+            'name': self.__class__.__name__,
             'data_source': self.data_source,
             'params': self.params
         }
@@ -429,7 +429,7 @@ class TrainModel:
             meta = json.load(fp)
 
         result = cls(meta['data_source'],meta['params'],False)
-        with open(os.path.join(path, name + ".pkl"), 'rb') as fp:  
+        with open(os.path.join(root, name + ".pkl"), 'rb') as fp:  
             result.model = pickle.load(fp)
         return result
 
@@ -710,3 +710,4 @@ def save_importance_report(model,imp):
   root_path = jhkaggle.jhkaggle_config['PATH']
   model_path = os.path.join(root_path,model)
   imp.to_csv(os.path.join(model_path,'peturb.csv'),index=False)
+

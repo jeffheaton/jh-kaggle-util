@@ -13,6 +13,8 @@ import operator
 from sklearn.metrics import log_loss
 import scipy
 import jhkaggle.util
+import json
+
 
 class TrainXGBoost(jhkaggle.util.TrainModel):
     def __init__(self, data_source, params, run_single_fold):
@@ -63,3 +65,30 @@ class TrainXGBoost(jhkaggle.util.TrainModel):
         self.scores = [self.score]
         print("Should use {} rounds.".format(self.rounds))
         return self.score, self.rounds
+
+    def save_model(self, path, name):
+        print("Saving Model")
+
+        self.model.save_model(os.path.join(path, name + ".bin"))
+
+        meta = {
+            'name': 'TrainXGBoost',
+            'data_source': self.data_source,
+            'params': self.params
+        }
+        
+        with open(os.path.join(path,"meta.json"), 'w') as outfile:
+            json.dump(meta, outfile)
+
+    @classmethod
+    def load_model(cls,path,name):
+        root = jhkaggle.jhkaggle_config['PATH']
+        model_path = os.path.join(root,path)
+        meta_filename = os.path.join(model_path,"meta.json")
+        with open(meta_filename, 'r') as fp:
+            meta = json.load(fp)
+
+        result = TrainXGBoost(meta['data_source'],None,False)
+        result.model = xgb.Booster({'nthread':-1}) #init model
+        result.model.load_model(os.path.join(model_path,name+".bin"))
+        return result

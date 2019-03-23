@@ -86,8 +86,8 @@ def run_lgb():
 
 if __name__ == "__main__":
   start_time = time.time()
-  #run_xgboost()
-  run_sklearn()
+  run_xgboost()
+  #run_sklearn()
   #run_lgb()
 
   elapsed_time = time.time() - start_time
